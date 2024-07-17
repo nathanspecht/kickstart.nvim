@@ -1,14 +1,13 @@
 local embedded_sql = vim.treesitter.query.parse(
   'rust',
   [[
-(macro_invocation
-  (scoped_identifier
-    path: (identifier) @_path (#eq? @_path "sqlx")
-    name: (identifier) @_name (#eq? @_name "query_as"))
-
-  (token_tree
-    (raw_string_literal (string_content) @sql))
-)
+    (macro_invocation
+	    (scoped_identifier
+		    path: (identifier) @path (#eq? @path "sqlx")
+		    name: (identifier) @name (#eq? @path "query_as"))
+	    (token_tree
+		    (raw_string_literal) @sql)
+		    (#offset! @sql 1 0 -1 0))
 	    ]]
 )
 
@@ -78,14 +77,12 @@ local format_dat_sql = function(bufnr)
         formatted[idx] = indentation .. line
       end
 
-      table.insert(changes, 1, { start = range[1], final = range[3], formatted = formatted })
-      -- table.insert(changes, 1, { startRow = range[1], startCol = range[2], finalRow = range[3], finalCol = range[4], formatted = formatted })
+      table.insert(changes, 1, { start = range[1] + 1, final = range[3], formatted = formatted })
     end
   end
 
   for _, change in ipairs(changes) do
     vim.api.nvim_buf_set_lines(bufnr, change.start, change.final, false, change.formatted)
-    -- vim.api.nvim_buf_set_text(bufnr, change.startRow, change.startCol, change.finalRow, change.finalCol, change.formatted)
   end
 end
 
